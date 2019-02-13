@@ -1,6 +1,7 @@
 // Copyright (c) jdneo. All rights reserved.
 // Licensed under the MIT license.
 
+import * as fs from "fs";
 import * as fse from "fs-extra";
 import * as vscode from "vscode";
 import { LeetCodeNode } from "../explorer/LeetCodeNode";
@@ -49,15 +50,23 @@ async function showProblemInternal(id: string): Promise<void> {
             return;
         }
 
-        const outDir: string = await selectWorkspaceFolder();
+        const outDir: string = await selectWorkspaceFolder() + `/src/${id}`;
         await fse.ensureDir(outDir);
         const result: string = await leetCodeExecutor.showProblem(id, language, outDir);
         const reg: RegExp = /\* Source Code:\s*(.*)/;
         const match: RegExpMatchArray | null = result.match(reg);
         if (match && match.length >= 2) {
             const filePath: string = wsl.useWsl() ? await wsl.toWinPath(match[1].trim()) : match[1].trim();
-
-            await vscode.window.showTextDocument(vscode.Uri.file(filePath), { preview: false });
+            const newFilePath: string = filePath.replace(
+                filePath.substring(
+                    filePath.lastIndexOf("/") + 1,
+                    filePath.lastIndexOf("."),
+                ),
+                "index",
+            );
+            fs.renameSync(filePath, newFilePath);
+            await resetProblemFileContent(newFilePath);
+            await vscode.window.showTextDocument(vscode.Uri.file(newFilePath), { preview: false });
         } else {
             throw new Error("Failed to fetch the problem information.");
         }
@@ -101,4 +110,36 @@ function parseProblemDecorator(state: ProblemState, locked: boolean): string {
         default:
             return locked ? "$(lock) " : "";
     }
+}
+
+async function resetProblemFileContent(filePath: string): Promise<void> {
+    const titlePattern: RegExp = /\* \[\d*\].*/g;
+    const urlPattern: RegExp = /https:\/\/.*/g;
+    const difficultyPatterm: RegExp = /Hard|Medium|Easy/g;
+    const content: string = await readProblemFileContent(filePath);
+    const url: string = (content.match(urlPattern) as string[])[0];
+    const difficulty: string = (content.match(difficultyPatterm) as string[])[0];
+    let title: string = (content.match(titlePattern) as string[])[0];
+    const id: string = title.substring(title.indexOf("[") + 1, title.indexOf("]"));
+    title = title.substring(title.indexOf("]") + 2);
+    const config: string = `
+module.exports = {
+    id:'${id}',
+    title:'${title}',
+    url:'${url}',
+    difficulty:'${difficulty}',
+}`;
+    fs.writeFileSync(filePath, content + config);
+}
+
+function readProblemFileContent(filePath: string): Promise<string> {
+    return new Promise((resolve: any, reject: any): void => {
+        fs.readFile(filePath, "utf8", (err: any, data: string) => {
+            if (err) {
+                reject();
+            } else {
+                resolve(data);
+            }
+        });
+    });
 }
