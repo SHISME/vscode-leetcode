@@ -1,6 +1,7 @@
 // Copyright (c) jdneo. All rights reserved.
 // Licensed under the MIT license.
 
+import { execSync } from "child_process";
 import * as fs from "fs";
 import * as fse from "fs-extra";
 import * as vscode from "vscode";
@@ -67,6 +68,7 @@ async function showProblemInternal(id: string): Promise<void> {
             fs.renameSync(filePath, newFilePath);
             await resetProblemFileContent(newFilePath);
             await vscode.window.showTextDocument(vscode.Uri.file(newFilePath), { preview: false });
+            execSync(`ts-node build.ts -i ${id}`);
         } else {
             throw new Error("Failed to fetch the problem information.");
         }
