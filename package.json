@@ -1,10 +1,10 @@
 {
-    "name": "vscode-leetcode",
-    "displayName": "LeetCode",
-    "description": "Solve LeetCode problems in VS Code",
+    "name": "sh-vscode-leetcode",
+    "displayName": "SH_LeetCode",
+    "description": "Over write vscode-leetcode for my self",
     "version": "0.10.1",
-    "author": "Sheng Chen",
-    "publisher": "shengchen",
+    "author": "shisme",
+    "publisher": "shisme",
     "license": "MIT",
     "icon": "resources/LeetCode.png",
     "engines": {
@@ -253,7 +253,6 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "postinstall": "node ./node_modules/vscode/bin/install",
