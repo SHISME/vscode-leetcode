@@ -1,6 +1,6 @@
 {
-    "name": "sh-vscode-leetcode",
-    "displayName": "SH_LeetCode",
+    "name": "sh-code",
+    "displayName": "sh-code",
     "description": "Over write vscode-leetcode for my self",
     "version": "0.10.1",
     "author": "shisme",
